@@ -1,0 +1,10 @@
+# installers and binaries are never committed (link to official downloads instead)
+*.exe
+*.msi
+*.apk
+*.zip
+
+# private material that must stay out of the public repo
+private/
+*.private.*
+*.log
