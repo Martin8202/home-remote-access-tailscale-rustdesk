@@ -42,7 +42,28 @@
 6. **Windows 登入密碼**：連進去先看到的是登入畫面。
 7. **人的那一層**：只有家人主動打給我才開；有人冒充我要求開 App 或給驗證碼，一律先掛掉回撥。
 
-另外每月跑 [`scripts/monthly-check.ps1`](scripts/monthly-check.ps1)，檢查有沒有陌生設備、金鑰到期、防火牆規則與 RustDesk 連線來源。
+## 每月自動安全檢查
+
+設定完不代表永遠安全：RustDesk 更新可能重建防火牆規則、設備可能被加錯、陌生來源可能連進來。所以每台被遠端的電腦每月自動自我檢查一次，結果透過 OneDrive 匯集，隔天由常開的桌電彙總：
+
+```
+每月 1 號 10:00（錯過就下次開機補跑）
+ ┌ 桌電 ctl-pc  ─ monthly-check.ps1 ─┐   有問題 → 在該台跳視窗
+ ├ 筆電        ─ monthly-check.ps1 ─┤   （家人電腦以 SYSTEM 執行，只寫記錄不跳窗，避免嚇到家人）
+ └ 家人電腦     ─ monthly-check.ps1 ─┘
+        │ 各自寫 logs\<電腦名稱>-<年-月>.txt，經 OneDrive 同步
+        ▼
+每月 2 號 10:00  桌電 monthly-summary.ps1
+        └ 三台都有本月記錄且通過 → 安靜；缺記錄或沒通過 → 在桌電跳視窗
+```
+
+| 檢查項目 | 怎麼判斷 |
+| --- | --- |
+| Tailscale 設備清單 | 只能是已知的設備名稱；所有設備金鑰到期都已停用 |
+| RustDesk 防火牆規則 | 一定要有 Inbound 規則；每一條的遠端 IP 都只能是我的設備 |
+| RustDesk 連入記錄 | 最近 20 筆來源 IP 都要是我的設備 |
+
+腳本全部唯讀、不改任何設定；排程用 [`scripts/register-monthly-tasks.ps1`](scripts/register-monthly-tasks.ps1) 一行建立（`-Mode User` / `System` / `Summary`）。只剩 Tailscale 後台的 Configuration logs 要每月到網頁看一眼。
 
 ## 目錄
 
@@ -53,7 +74,9 @@
 | [`docs/family-phone-guide.pdf`](docs/family-phone-guide.pdf) | 給長輩看的圖文操作說明（示意版） |
 | [`scripts/tv-template.bat`](scripts/tv-template.bat) | 一鍵開啟 Android TV 遠端視窗（自動尋找 scrcpy） |
 | [`scripts/phone-jump-template.bat`](scripts/phone-jump-template.bat) | 從 iPhone 經桌電跳板連家人手機 |
-| [`scripts/monthly-check.ps1`](scripts/monthly-check.ps1) | 唯讀的每月安全檢查 |
+| [`scripts/monthly-check.ps1`](scripts/monthly-check.ps1) | 唯讀的每月安全檢查（`-Scheduled` 寫記錄、有問題才跳窗；`-NoPopup` 只寫記錄） |
+| [`scripts/monthly-summary.ps1`](scripts/monthly-summary.ps1) | 每月 2 號彙總各台檢查結果 |
+| [`scripts/register-monthly-tasks.ps1`](scripts/register-monthly-tasks.ps1) | 建立上面兩個工作排程 |
 
 ## 實作中遇到的問題與解法
 
@@ -68,6 +91,10 @@
 | Android 手機上 RustDesk 平常沒用，幾個月後權限可能被收回 | Android「管理未使用的應用程式」會自動移除權限 | 對 RustDesk、Tailscale 關掉這個選項 |
 | 螢幕一鎖，手機端的螢幕錄製就停止 | 新版 Android 的安全限制 | 寫進家人 SOP：連線期間手機保持亮著 |
 | 電視播 Netflix 時 scrcpy 畫面全黑 | DRM 保護 | 請家人先退回電視首頁 |
+| 檢查腳本在 PowerShell 5.1 讀 `tailscale status --json` 解析失敗 | `tailscale.exe` 輸出 UTF-8，PowerShell 5.1 用舊碼頁解讀，中文顯示名稱被讀壞、吃掉引號 | 呼叫前設定 `[Console]::OutputEncoding = UTF8`；.ps1 本身維持純 ASCII，中文用 `\u` 跳脫 |
+| 筆電的排程第一次執行失敗（結果碼 1），手動執行卻正常 | 剛改完腳本，筆電的 OneDrive 還沒同步到新版，排程跑到不認得新參數的舊版 | 改完腳本等各台同步完成再測（實際環境的設定腳本會先比對檔案指紋，版本不對就停止） |
+| 經 RustDesk 把長指令貼進遠端電腦，PowerShell 一直停在 `>>` | 遠端剪貼簿把長行截斷，引號不成對 | 改成把設定寫成腳本檔放共用資料夾，遠端只貼一行短指令 |
+| 家人電腦的檢查要在沒人登入時也能跑，又不能跳視窗嚇到家人 | 以使用者身分執行需要登入，而且視窗會出現在家人螢幕上 | 家人電腦用 SYSTEM 身分、只寫記錄；由桌電隔天彙總、出問題在我的螢幕提醒 |
 | 想遠端看歡唱機畫面，但它接在 Sony 電視上 | 該型號 Sony 電視不是 Android TV，沒有 ADB | 評估 KVM 盒、擷取卡等方案，暫不實作 |
 
 ## 刻意不做的事
@@ -82,7 +109,9 @@
 | [Tailscale](https://tailscale.com/) | 加密內網（WireGuard）、ACL、設備標籤與核准 | BSD-3-Clause（用戶端）／Personal 方案限非商用 |
 | [RustDesk](https://rustdesk.com/) | 遠端桌面（電腦、Android 手機），只用直接 IP | AGPL-3.0 |
 | [scrcpy](https://github.com/Genymobile/scrcpy) + adb | 控制 Android TV | Apache-2.0 |
-| PowerShell / Batch | 每月檢查腳本、一鍵連線捷徑 | 本 repo（PolyForm Noncommercial） |
+| PowerShell / Batch | 每月檢查與彙總腳本、一鍵連線捷徑 | 本 repo（PolyForm Noncommercial） |
+| Windows 工作排程器 | 每月自動執行檢查（使用者／SYSTEM 兩種身分） | Windows 內建 |
+| OneDrive | 各台檢查記錄的匯集管道 | 微軟服務條款 |
 
 ## 與 AI 協作
 

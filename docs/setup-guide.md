@@ -40,7 +40,7 @@
 
 ### 目前進度
 
-截至 2026-11-15：你的四台設備（iPhone、iPad、筆電、ctl-pc）全部完成，互連驗收通過；兩台 Android TV 安裝完成（ctl-pc 雙擊 `tv1.bat`、`tv2.bat` 即可操作；筆電在家可直連客廳電視，TV #1 筆電尚未授權），家人電腦 pc-home 完成，ctl-pc BIOS 已設定。Sony KD-43X7000F 不是 Android TV，已排除。家人 Android 手機 family-phone 完成（iPhone 需經 ctl-pc 轉連）。剩下：TV #1 筆電授權（預定 2026-11-16）、教家人照 PDF 操作一次；Tailnet Lock 標記為之後再做；其他家人電腦暫不加入，家人 iPad / iPhone 不處理。
+截至 2026-11-15：你的四台設備（iPhone、iPad、筆電、ctl-pc）全部完成，互連驗收通過；兩台 Android TV 安裝完成（ctl-pc 雙擊 `tv1.bat`、`tv2.bat` 即可操作；筆電在家可直連兩台電視），家人電腦 pc-home 完成，ctl-pc BIOS 已設定。Sony KD-43X7000F 不是 Android TV，已排除。家人 Android 手機 family-phone 完成（iPhone 需經 ctl-pc 轉連）。剩下：教家人照 PDF 操作一次；Tailnet Lock 標記為之後再做；其他家人電腦暫不加入，家人 iPad / iPhone 不處理。
 
 | 項目 | 狀態 | 備註 |
 | --- | --- | --- |
@@ -75,16 +75,20 @@
 - [x] Android TV #1：`tv1.bat` 雙擊實測可開（2026-11-14）
 - [x] 選做驗收：TV #1 重開機後再雙擊一次、用 iPhone 行動網路走一次完整流程
 - [x] 其他 Android TV：電視都處理完（2026-11-15，你確認）
-- [ ] TV #1：筆電授權（照 `laptop-tv-spec.md` 第 4 節第 3、4 步，IP 192.168.1.50）
+- [x] TV #1：筆電授權（2026-11-15，adb devices 顯示 device）
 - [x] Sony KD-43X7000F：不是 Android TV，排除（2026-11-15）
 - [x] 客廳 BenQ（192.168.1.51）：筆電授權、`tv2.bat` 實測、換主畫面、重開機驗證（2026-11-15）
 - [x] 客廳 BenQ：ctl-pc 雙擊 `tv2.bat`，在電視前按允許授權；路由器綁 192.168.1.51（2026-11-15，使用者回報完成）
-- [x] 筆電裝 scrcpy 5.0.1（winget，2026-11-15）；尚未對 TV #1 授權
+- [x] 筆電裝 scrcpy 5.0.1（winget，2026-11-15）；TV #1、客廳 BenQ 都已授權
 - 家人 iPad / iPhone：不處理（你的決定）
 - [x] ctl-pc 的 BIOS 斷電回復後電源狀態設為「上次狀態」（2026-11-15）
 - [ ] 之後再做：啟用 Tailnet Lock（2026-11-15 你決定延後）。做之前要準備：簽章設備用 ctl-pc＋筆電兩台；停用密鑰存在加密保存庫（與 Tailscale 登入帳號不同的雲端）＋紙本一份，不寫進本文件。以後加設備多一步：在 ctl-pc 或筆電跑後台顯示的簽名指令
 - [ ] 選做：家裡電腦之間的網路芳鄰（只限區網）
-- [ ] 每月：照「連線記錄與每月檢查」做一次
+- [x] 2026-11 每月檢查完成：設備清單、Configuration logs、ctl-pc、筆電、pc-home 的防火牆與 RustDesk 連線來源都正常（ctl-pc 已補回 Inbound 規則）
+- [x] 每月檢查自動排程：ctl-pc、筆電已設定（工作排程器 `HomeRemote\MonthlyCheck`，每月 1 號 10:00、錯過就下次登入補跑；有問題才跳出視窗；結果存在本資料夾 `logs\<電腦名稱>-<年-月>.txt`，經 OneDrive 同步）
+- [x] 每月檢查自動排程：pc-home（2026-11-15；以 SYSTEM 執行、只寫記錄不跳視窗；腳本與 `register-monthly-tasks.ps1 -Mode System` 放 OneDrive 的 `share_folder\遠端操控設定`，pc-home 上的帳號是 <family-user>，路徑不是 `C:\Users\User`；記錄在同資料夾 `logs\`，同步回 ctl-pc 可直接讀；首次結果全部通過）
+- [x] 每月 2 號總結：ctl-pc 排程 `HomeRemote\MonthlySummary`（`monthly-summary.ps1`，每月 2 號 10:00，錯過就補跑）確認三台都有本月記錄且最後一次通過；缺記錄或有問題就在 ctl-pc 跳視窗，結果附加到 `logs\summary-<年-月>.txt`（2026-11-15 實測：正常與缺記錄兩種情況都正確）
+- [ ] 每月：看到 ctl-pc 沒跳視窗就代表三台都通過；仍要到 Tailscale 後台看 Configuration logs（最近 30 天）
 
 ## 2. Tailscale 帳號與後台
 
@@ -312,7 +316,12 @@ Windows 家用版不能當 RDP 的被控端，只有 Pro 版可以；要用 RDP�
 | 每台電腦被 RustDesk 連線的時間與來源 IP | 該電腦的 RustDesk log 資料夾：`C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\log` | 已在 ctl-pc 確認：`log\server\RustDesk_rCURRENT.log`，找「Connection opened from」那行就是來源 IP。查詢：`Select-String -Path "C:\Windows\ServiceProfiles\LocalService\AppData\Roaming\RustDesk\log\server\*.log" -Pattern "Connection opened from" \| Select-Object -Last 20` |
 | RDP 登入記錄（有開 RDP 的電腦） | 事件檢視器 → 應用程式及服務記錄檔 → Microsoft → Windows → TerminalServices-RemoteConnectionManager，事件 1149 | 含時間、帳號、來源 IP |
 
-每月檢查：
+每月檢查（第 2～4 項由 `monthly-check.ps1` 自動完成，見下方說明；第 1 項的 Logs 仍要到網頁看）：
+
+- 自動：工作排程器 `HomeRemote\MonthlyCheck` 每月 1 號 10:00 以系統管理員權限執行 `monthly-check.ps1 -Scheduled`；結果寫入腳本旁的 `logs\<電腦名稱>-<年-月>.txt`（同月多次附加在後），有問題才跳出視窗（pc-home 加 `-NoPopup` 只寫記錄）
+- 手動：系統管理員 PowerShell 執行 `powershell -ExecutionPolicy Bypass -File <路徑>\monthly-check.ps1`
+- 改完腳本要等 OneDrive 在各台同步完成再測，否則會跑到舊版（2026-11-15 筆電第一次排程就因此失敗，結果碼 1）
+- 每月 2 號：ctl-pc 的 `monthly-summary.ps1` 檢查三台的本月記錄是否都在且通過（補上 pc-home 不跳視窗、某台根本沒跑的缺口）
 
 - [ ] Tailscale Machines：只有清單內的設備，沒有多出來的
 - [ ] Tailscale Logs：沒有不是你做的設定變更

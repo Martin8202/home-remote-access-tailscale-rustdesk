@@ -20,7 +20,7 @@
 
 | 名稱 | IP | bat |
 | --- | --- | --- |
-| TV #1（AI PONT，Android 11） | 192.168.1.50 | `tv1.bat`（ctl-pc 已授權；筆電待授權） |
+| TV #1（AI PONT，Android 11） | 192.168.1.50 | `tv1.bat`（ctl-pc、筆電都已授權，2026-11-15） |
 | 客廳 BenQ（AI PONT，Android 11） | 192.168.1.51 | `tv2.bat`（筆電、ctl-pc 都已授權，2026-11-15） |
 | Sony KD-43X7000F | 192.168.1.52 | 不適用：Linux 系統、沒有 ADB，已排除 |
 | 其他電視 | — | 每台一個 bat，見第 4 節第 5 步 |
