@@ -1,5 +1,6 @@
 # 家用遠端連線設定清單（Tailscale + RustDesk）
 
+2026-11-14 建立 · 本檔是唯一正本（線上版已於 2026-11-15 刪除）；公開去識別化版本在 GitHub `Martin8202/home-remote-access-tailscale-rustdesk`
 
 ## 1. 總覽
 
@@ -42,16 +43,19 @@
 
 截至 2026-11-15：你的四台設備（iPhone、iPad、筆電、ctl-pc）全部完成，互連驗收通過；兩台 Android TV 安裝完成（ctl-pc 雙擊 `tv1.bat`、`tv2.bat` 即可操作；筆電在家可直連兩台電視），家人電腦 pc-home 完成，ctl-pc BIOS 已設定。Sony KD-43X7000F 不是 Android TV，已排除。家人 Android 手機 family-phone 完成（iPhone 需經 ctl-pc 轉連）。剩下：教家人照 PDF 操作一次；Tailnet Lock 標記為之後再做；其他家人電腦暫不加入，家人 iPad / iPhone 不處理。
 
+2026-11-18 新增：第二台筆電 ctl-laptop-spark（ARM 筆電，Windows 11 Pro ARM64，電腦名稱 DESKTOP-ZZZZZZZ，IP 100.64.0.14），和舊筆電 ctl-laptop 並存。這台的安裝、防火牆、每月檢查排程都已完成，iPhone 也已連線成功；還沒把它的 IP 加進其他設備的白名單（見下方待辦）。
+
 | 項目 | 狀態 | 備註 |
 | --- | --- | --- |
 | Tailscale 帳號與後台 | 完成 | MagicDNS、Device approval、兩條 ACL 都已套用；Tailnet Lock 留到最後 |
 | 你的 iPhone（ctl-iphone） | 完成 | 操作端；已驗證筆電、ctl-pc 都連不到它 |
 | 你的筆電（ctl-laptop） | 完成並上鎖 | 2FA、白名單、ID 伺服器、防火牆、BitLocker 都已確認；電源維持接電源 15 分鐘睡眠（你的決定） |
+| 你的第二台筆電（ctl-laptop-spark，DESKTOP-ZZZZZZZ） | 完成本機設定（2026-11-18），其他設備白名單待加 | IP 100.64.0.14；ARM64；Tailscale 1.104.7 不標 tag、Expiry disabled；RustDesk 1.5.3 aarch64（官方 GitHub，雜湊與簽章已驗）服務 Running；防火牆 2 條規則鎖 iPhone、iPad、ctl-pc、ctl-laptop；BitLocker 開啟（XTS-AES 128）；接電源不睡眠；scrcpy 5.0.1（winarm64）；每月檢查排程首次全部通過；iPhone 連線成功（2026-11-18 00:21）。待確認：Run unattended、蓋螢幕不動作、RustDesk 2FA／白名單／ID 伺服器 127.0.0.1、兩台 TV 的 ADB 授權 |
 | 桌電 ctl-pc | 完成並上鎖 | 已從 tag:home 改為你的設備；scrcpy 5.0.1 已裝（winget）；BIOS 斷電回復後電源狀態＝上次狀態（ErP 關閉）|
 | 你的 iPad（ctl-ipad） | 完成 | IP 100.64.0.12；已加進 ctl-pc、筆電的 RustDesk 白名單與防火牆；行動網路驗收通過 |
 | 家人的電腦 pc-home（DESKTOP-XXXXXXX） | 完成 | IP 100.64.0.21；用 QR code 登入加入，已帶 `tag:home`、Expiry disabled；防火牆 4 條規則都已鎖白名單；反向測試通過；ctl-pc → pc-home 21118 可通 |
 | 其他家人的電腦 | 暫不加入 | 之後有需要再加，照 pc-home 流程（見「電腦設定」） |
-| 家人 Android 手機 family-phone（Pixel 8a） | 完成（iPhone 直連除外） | IP 100.64.0.22；tag:home、Expiry disabled；RustDesk 白名單、2FA、IP 直接連線、固定密碼（2026-11-15）、輸入控制（無障礙）已開、ID 伺服器 127.0.0.1、「管理未使用的應用程式」關閉（RustDesk 與 Tailscale）、通知開啟（2026-11-15 你確認全部完成）；電腦（筆電、ctl-pc）連線有畫面；iPhone 直連卡「等待畫面傳輸」；iPhone 經 ctl-pc 雙擊 `phone-jump.bat` 轉連可行（ctl-pc 的 RustDesk 主視窗在遠端畫面中是白的、點不到，用 bat 繞過）；iPad 未測 |
+| 家人 Android 手機 family-phone（Pixel 8a） | 完成（iPhone 直連除外） | IP 100.64.0.22；tag:home、Expiry disabled；RustDesk 白名單、2FA、IP 直接連線、固定密碼（2026-11-15）、輸入控制（無障礙）已開、ID 伺服器 127.0.0.1、「管理未使用的應用程式」關閉（RustDesk 與 Tailscale）、通知開啟（2026-11-15 你確認全部完成）；電腦（筆電、ctl-pc）連線有畫面；iPhone 直連卡「等待畫面傳輸」；iPhone 經 ctl-pc 雙擊 `連家人手機.bat` 轉連可行（ctl-pc 的 RustDesk 主視窗在遠端畫面中是白的、點不到，用 bat 繞過）；iPad 未測 |
 | Android TV #1（AI PONT，Android 11） | 完成 | 固定 IP 192.168.1.50、ADB 已授權、`tv1.bat` 實測可開；USB／網路偵錯維持開啟（你的決定）；重開機後重測、iPhone 行動網路完整流程都已通過 |
 | 其他 Android TV | 無（2026-11-15 你確認電視都處理完） | 之後新增 TV 照第 5 節做：路由器綁固定 IP、開偵錯、ctl-pc 授權；各自複製一份 bat 改 `set TV=` 那行與檔名 |
 | 客廳 BenQ（AI PONT，Android 11） | 完成 | 固定 IP 192.168.1.51、筆電與 ctl-pc 都已授權、`tv2.bat` 筆電實測可開、重開機後 ADB 仍可連；USB 偵錯維持開啟 |
@@ -88,7 +92,13 @@
 - [x] 每月檢查自動排程：ctl-pc、筆電已設定（工作排程器 `HomeRemote\MonthlyCheck`，每月 1 號 10:00、錯過就下次登入補跑；有問題才跳出視窗；結果存在本資料夾 `logs\<電腦名稱>-<年-月>.txt`，經 OneDrive 同步）
 - [x] 每月檢查自動排程：pc-home（2026-11-15；以 SYSTEM 執行、只寫記錄不跳視窗；腳本與 `register-monthly-tasks.ps1 -Mode System` 放 OneDrive 的 `share_folder\遠端操控設定`，pc-home 上的帳號是 <family-user>，路徑不是 `C:\Users\User`；記錄在同資料夾 `logs\`，同步回 ctl-pc 可直接讀；首次結果全部通過）
 - [x] 每月 2 號總結：ctl-pc 排程 `HomeRemote\MonthlySummary`（`monthly-summary.ps1`，每月 2 號 10:00，錯過就補跑）確認三台都有本月記錄且最後一次通過；缺記錄或有問題就在 ctl-pc 跳視窗，結果附加到 `logs\summary-<年-月>.txt`（2026-11-15 實測：正常與缺記錄兩種情況都正確）
-- [ ] 每月：看到 ctl-pc 沒跳視窗就代表三台都通過；仍要到 Tailscale 後台看 Configuration logs（最近 30 天）
+- [ ] 每月：看到 ctl-pc 沒跳視窗就代表四台（2026-11-18 起加入 ctl-laptop-spark）都通過；仍要到 Tailscale 後台看 Configuration logs（最近 30 天）
+- [x] ctl-laptop-spark：安裝 Tailscale、RustDesk 1.5.3 aarch64、scrcpy；防火牆鎖白名單；BitLocker 確認（2026-11-18，IP 100.64.0.14）
+- [x] ctl-laptop-spark 加進 `monthly-check.ps1` 的 `$Allowed`、`$Expected`（兩份副本一致，指紋 <script-hash>；`register-monthly-tasks.ps1 -Mode System` 的指紋已同步更新）；這台註冊 `HomeRemote\MonthlyCheck`（User 模式）；`monthly-summary.ps1` 加入 `DESKTOP-ZZZZZZZ`（2026-11-18）
+- [ ] 把 100.64.0.14 加進白名單：ctl-pc、ctl-laptop、pc-home（RustDesk 白名單＋防火牆），family-phone（RustDesk 白名單）
+- [ ] ctl-laptop-spark 收尾：Tailscale Run unattended、蓋螢幕不動作、RustDesk 2FA／白名單／ID 伺服器 127.0.0.1／拒絕區域網路探索
+- [ ] ctl-laptop-spark：在家雙擊 `tv1.bat`、`tv2.bat`，到電視前按「一律允許」授權
+- [ ] 2026-12-02 第一次正式排程驗收：①ctl-pc 有沒有跳「總結」視窗 ②`logs\summary-2026-12.txt` 最後一行是否 `OK: ctl-pc, ctl-laptop, ctl-laptop-spark, pc-home | issues: 0` ③`schtasks /Query /TN "HomeRemote\MonthlyCheck" /V /FO LIST` 與 `HomeRemote\MonthlySummary` 的上次執行時間是 12/1、12/2 且結果 0 ④Tailscale Configuration logs 11/15～12/2 只有自己的操作
 
 ## 2. Tailscale 帳號與後台
 
@@ -146,15 +156,17 @@ ACL：第一條讓你的設備連家裡設備；第二條讓你的設備彼此�
 | iPhone（ctl-iphone） | 100.64.0.11 |
 | iPad（ctl-ipad） | 100.64.0.12 |
 | 筆電（ctl-laptop） | 100.64.0.13 |
+| 第二台筆電（ctl-laptop-spark） | 100.64.0.14 |
 | 桌電 pc-main（ctl-pc） | 100.64.0.10 |
 
 白名單怎麼填（RustDesk IP 白名單與 Windows 防火牆都用同一份）：
 
 | 設定在哪台 | 白名單填哪些 IP |
 | --- | --- |
-| pc-main | iPhone、iPad、筆電 |
-| 你的筆電 | iPhone、iPad、pc-main |
-| 家裡設備（家人的電腦、手機） | iPhone、iPad、筆電、pc-main |
+| pc-main | iPhone、iPad、筆電、第二台筆電 |
+| 你的筆電（ctl-laptop） | iPhone、iPad、第二台筆電、pc-main |
+| 第二台筆電（ctl-laptop-spark） | iPhone、iPad、筆電、pc-main |
+| 家裡設備（家人的電腦、手機） | iPhone、iPad、筆電、第二台筆電、pc-main |
 
 家裡設備的白名單不填彼此的 IP，所以就算在家裡區網直接連，家人的電腦之間也連不上。之後新增或更換你的設備，要回來更新每台的白名單。
 
@@ -262,11 +274,16 @@ TV 的 USB 偵錯、網路偵錯要一直開著，也不要按「撤銷 USB 偵�
 家人要請你遠端時的 SOP（印出來或存在他們手機）：
 
 1. 打開 **Tailscale** → 按中間的開關，變成「Connected」（第一次會跳「連線要求」，按確定）
-2. 打開 **RustDesk** → 下方點「**螢幕分享**」→ 按「**啟動服務**」→ 跳出「開始錄製或投放」時選「**整個螢幕**」→ 按「**立即開始**」
-3. 打電話給你，說「我開好了」；**手機保持亮著、不要鎖螢幕**（螢幕一鎖錄製就會自己停）
-4. 幫忙完：RustDesk「螢幕分享」→ 按「**停止服務**」；再回 Tailscale 把開關關掉（平常兩個都關著，省電）
+2. 先打開**無障礙**（要請你操作手機才需要）：設定 → 最上面「搜尋設定」→ 輸入「無障礙」→「無障礙設定」→「**RustDesk Input**」→ 最上面「啟用 RustDesk Input」的開關按成開（下面的「RustDesk Input 捷徑」開關不要按）→ 跳出提示按「允許」或「確定」
+3. 再打開 **RustDesk** → 下方點「**螢幕分享**」→ 按「**啟動服務**」→ 跳出「分享畫面嗎？」時選「**分享整個畫面**」→ 按「**分享畫面**」
+4. 打電話給你，說「我開好了」；**手機保持亮著、不要鎖螢幕**（螢幕一鎖錄製就會自己停）
+5. 幫忙完（順序跟開始相反）：先 RustDesk「螢幕分享」→ 按「**停止服務**」；再**把 RustDesk Input 的無障礙關掉**；最後回 Tailscale 把開關關掉（平常兩個都關著，省電）
 
-你這邊：用**電腦**連（筆電或 ctl-pc），先開 Tailscale，再從 RustDesk 最愛清單點家人手機（用 IP 連線）。人在外面只有 iPhone 時（2026-11-15 實測可行）：iPhone → RustDesk 連 ctl-pc → 在 ctl-pc 雙擊本資料夾的 `phone-jump.bat`（直接開 RustDesk 連 `100.64.0.22` 的連線視窗）→ 輸入家人手機的密碼與 2FA。不要在遠端畫面裡點 ctl-pc 的 RustDesk 主視窗：它在遠端畫面中是白的、點不到，所以才用 bat 繞過。給家人看的操作說明：本資料夾 `family-phone-guide.pdf`。
+順序：開始＝Tailscale → 無障礙 → RustDesk；結束＝RustDesk → 無障礙 → Tailscale。
+
+無障礙**平常要關著**：開著的時候，部分銀行、付款 App 偵測到會打不開（2026-11-19 家人手機實際遇到）。無障礙服務在清單裡叫「RustDesk Input」，停止 RustDesk 服務不會自動關它，所以結束時要手動關。
+
+你這邊：用**電腦**連（筆電或 ctl-pc），先開 Tailscale，再從 RustDesk 最愛清單點家人手機（用 IP 連線）。人在外面只有 iPhone 時（2026-11-15 實測可行）：iPhone → RustDesk 連 ctl-pc → 在 ctl-pc 雙擊本資料夾的 `連家人手機.bat`（直接開 RustDesk 連 `100.64.0.22` 的連線視窗）→ 輸入家人手機的密碼與 2FA。不要在遠端畫面裡點 ctl-pc 的 RustDesk 主視窗：它在遠端畫面中是白的、點不到，所以才用 bat 繞過。給家人看的操作說明：本資料夾 `family-phone-guide.pdf`。
 
 已知限制（2026-11-15 實測）：iPhone 直接連 Pixel 會卡在「已連線，等待畫面傳輸」，改編解碼器、關硬體編碼、Pixel 螢幕保持亮著都無效；電腦連同一支 Pixel 正常。Pixel 的「啟用硬體編解碼器」維持開啟。RustDesk 服務沒啟動時 port 21118 會關閉，連線直接失敗。
 
